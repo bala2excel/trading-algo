@@ -24,6 +24,23 @@ async_order_queue = asyncio.Queue()
 status = {"running": False}
 config_file = os.path.join(os.path.dirname(__file__), "../strategy/configs/survivor.yml")
 
+# Thread-safe queue for cross-thread order publishing
+thread_order_queue = queue.Queue()
+
+# Background task to move orders from thread_order_queue to async_order_queue
+async def order_publisher():
+    while True:
+        try:
+            order = thread_order_queue.get(timeout=1)
+            await async_order_queue.put(order)
+        except queue.Empty:
+            await asyncio.sleep(0.1)
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the background publisher
+    asyncio.create_task(order_publisher())
+
 # Load config
 with open(config_file, "r") as f:
     config = yaml.safe_load(f)["default"]
@@ -82,14 +99,6 @@ def run_algo():
             "paper_trade": True,
         }
         order_queue.put(order)
-        # Also put in async queue for websocket
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.run_coroutine_threadsafe(async_order_queue.put(order), loop)
-            else:
-                # If not running, fallback to direct put (should not happen in FastAPI)
-                loop.run_until_complete(async_order_queue.put(order))
-        except Exception:
-            pass
+        # Put order in thread-safe queue for async publishing
+        thread_order_queue.put(order)
         time.sleep(5)
