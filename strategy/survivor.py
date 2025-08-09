@@ -511,38 +511,52 @@ class SurvivorStrategy:
         - Variety: Always REGULAR
         - Tag: "Survivor" for identification
         """
-        # Place order through broker interface
-        order_id = self.broker.place_order(
-            symbol, 
-            quantity, 
-            price=None,  # Market order
-            transaction_type=self.strat_var_trans_type, 
-            order_type=self.strat_var_order_type, 
-            variety="REGULAR", 
-            exchange=self.strat_var_exchange, 
-            product=self.strat_var_product_type, 
-            tag="Survivor"
-        )
-        
-        # Handle order placement failure
-        if order_id == -1:
-            logger.error(f"Order placement failed for {symbol} × {quantity}, Market Price")
-            return
-            
-        logger.info(f"Placing order for {symbol} × {quantity}, Market Price")
-        
-        # Track the order using OrderTracker
+
+        # Check PAPER_TRADE environment variable
+        paper_trade = os.environ.get("PAPER_TRADE", "false").lower() == "true"
         from datetime import datetime
+        market_price = None
+        if paper_trade:
+            # Get market price only for paper trade
+            symbol_code = self.strat_var_exchange + ":" + symbol
+            try:
+                quote = self.broker.get_quote(symbol_code)[symbol_code]
+                market_price = quote.get('last_price', None)
+            except Exception as e:
+                logger.error(f"[PAPER TRADE] Could not fetch market price for {symbol_code}: {e}")
+                market_price = None
+            import uuid
+            order_id = f"paper_{uuid.uuid4()}"
+            logger.info(f"[PAPER TRADE] ORDER | Symbol: {symbol} | Qty: {quantity} | Price: {market_price} | Type: {self.strat_var_trans_type} | Time: {datetime.now().isoformat()} | OrderID: {order_id}")
+        else:
+            # Place order through broker interface
+            order_id = self.broker.place_order(
+                symbol,
+                quantity,
+                price=None,  # Market order
+                transaction_type=self.strat_var_trans_type,
+                order_type=self.strat_var_order_type,
+                variety="REGULAR",
+                exchange=self.strat_var_exchange,
+                product=self.strat_var_product_type,
+                tag="Survivor"
+            )
+            if order_id == -1:
+                logger.error(f"Order placement failed for {symbol} × {quantity}, Market Price")
+                return
+            logger.info(f"[LIVE TRADE] ORDER | Symbol: {symbol} | Qty: {quantity} | Type: {self.strat_var_trans_type} | Time: {datetime.now().isoformat()} | OrderID: {order_id}")
+
+        # Track the order using OrderTracker
         order_details = {
             "order_id": order_id,
             "symbol": symbol,
             "transaction_type": self.strat_var_trans_type,
             "quantity": quantity,
             "price": None,  # Market order
+            "market_price": market_price,
             "timestamp": datetime.now().isoformat(),
+            "paper_trade": paper_trade,
         }
-        
-        # Add to order tracking system
         self.order_manager.add_order(order_details)
         
 

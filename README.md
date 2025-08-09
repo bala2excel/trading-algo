@@ -30,22 +30,72 @@ Or if you prefer using pip:
 
 ```bash
 pip install -r requirements.txt  # You may need to generate this from pyproject.toml
+
+### 4. Paper Trading Mode
+
+You can run the strategy in paper trading mode to simulate trades without executing real orders. This is useful for backtesting and P&L analysis.
+
+**Enable paper trading:**
+1. Edit your `.env` file and set:
+   ```bash
+   PAPER_TRADE=true
+   ```
+2. Run the strategy as usual. All trades will be simulated and logged with market price for P&L calculation.
+
+**Log format for paper trades:**
+```
+[PAPER TRADE] ORDER | Symbol: <symbol> | Qty: <quantity> | Price: <market_price> | Type: <BUY/SELL> | Time: <timestamp> | OrderID: <paper_xxx>
 ```
 
-### 2. Environment Configuration
+### 5. Web UI for Live Management
+
+The project includes a web-based UI for managing strategy parameters, starting/stopping the algorithm, and viewing live order placements (including paper trades).
+
+#### Backend (FastAPI)
+1. Install backend dependencies:
+   ```bash
+   cd webui
+   pip install -r requirements.txt  # or use 'uv sync' if using uv
+   ```
+2. Start the FastAPI server:
+   ```bash
+   uvicorn main:app --reload
+   ```
+
+#### Frontend (React)
+1. Install frontend dependencies:
+   ```bash
+   cd webui
+   npm install
+   ```
+2. Start the React development server:
+   ```bash
+   npm start
+   ```
+
+#### Usage
+- Open your browser and go to `http://localhost:3000` to access the UI.
+- You can edit parameters, start/stop the algorithm, and view live order placements (including paper trades) in real time.
+
+#### Websocket Order Feed
+- All paper and live trades are emitted via websocket to the UI for live monitoring.
+
+---
+```
 
 1. Copy the sample environment file:
    ```bash
    cp .sample.env .env
-   ```
-
 2. Edit `.env` and fill in your broker credentials:
    ```bash
-   # Broker Configuration - Supports Fyers, Zerodha
-   BROKER_NAME=fyers  # or zerodha
-   BROKER_API_KEY=<YOUR_API_KEY>
-   BROKER_API_SECRET=<YOUR_API_SECRET>
-   # items below can be skipped if not using TOTP (Fyers currently only has TOTP based login)
+### 7. Core Components
+
+- `brokers/`: Broker implementations (Fyers, Zerodha)
+- `dispatcher.py`: Data routing and queue management
+- `orders.py`: Order management utilities
+- `logger.py`: Logging configuration
+- `strategy/`: Place your trading strategies here
+- `webui/`: FastAPI backend and React frontend for live management
    BROKER_TOTP_ENABLE=false # or true
    BROKER_ID=<YOUR_BROKER_ID>
    BROKER_TOTP_REDIDRECT_URI=<YOUR_TOTP_REDIRECT_URI>
@@ -62,6 +112,8 @@ Strategies should be placed in the `strategy/` folder.
 
 
 **Basic usage (using default config):**
+
+For more details, check the individual broker implementations, example strategies in the `strategy/` folder, and the web UI in `webui/`.
 ```bash
 cd strategy/
 python survivor.py

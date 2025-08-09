@@ -1,4 +1,46 @@
+
+# Python
 .env
-.venc
+.venv/
 __pycache__/
+*.pyc
+*.pyo
 *.log
+*.sqlite3
+*.db
+*.egg-info/
+dist/
+build/
+.DS_Store
+*.swp
+.idea/
+.vscode/
+uv.lock
+requirements.txt
+
+# FastAPI/Backend
+instance/
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# React/Frontend
+webui/node_modules/
+webui/build/
+webui/dist/
+webui/.next/
+webui/.cache/
+webui/coverage/
+webui/.env.local
+webui/.env.development.local
+webui/.env.test.local
+webui/.env.production.local
+
+# OS/Editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+uv.lock
