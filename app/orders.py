@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from logger import logger
+from app.logger import logger
 
 
 class OrderTracker:

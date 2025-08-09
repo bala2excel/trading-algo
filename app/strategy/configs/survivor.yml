@@ -1,5 +1,5 @@
 default:
-  ce_gap: '30'
+  ce_gap: '25'
   ce_quantity: 75
   ce_reset_gap: 30
   ce_start_point: 0

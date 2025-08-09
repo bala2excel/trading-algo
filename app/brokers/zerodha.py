@@ -19,6 +19,23 @@ load_dotenv()
 
 # --- Zerodha Broker ---
 class ZerodhaBroker(BrokerBase):
+    def get_atm_symbol(self, symbol_initials, option_type="CE"):
+        """
+        Returns the ATM option symbol for the given option type (CE/PE) and symbol_initials.
+        """
+        # Get current market price
+        ltp = self.get_market_price(symbol_initials)
+        # Filter instruments for the correct expiry and option type
+        df = self.instruments_df[
+            (self.instruments_df['tradingsymbol'].str.startswith(symbol_initials)) &
+            (self.instruments_df['instrument_type'] == option_type)
+        ]
+        if df.empty:
+            return None
+        # Find closest strike to LTP
+        df['strike_diff'] = (df['strike'] - ltp).abs()
+        best = df.sort_values('strike_diff').iloc[0]
+        return best['tradingsymbol']
     def __init__(self, without_totp):
         super().__init__()
         self.without_totp = without_totp
