@@ -1049,14 +1049,18 @@ PARAMETER GROUPS:
     # ==========================================================================
     
     
+    # add code to get if the paper trade frame from env variable and pass it down during constructing the ZerodhdaBroker
+    paper_trade = os.getenv("BROKER_PAPER_TRADE") == "true"
+    logger.info(f"Paper trading mode: {'Enabled' if paper_trade else 'Disabled'}")
+
     # Create broker interface for market data and order execution
     if os.getenv("BROKER_TOTP_ENABLE") == "true":
         logger.info("Using TOTP login flow")
-        broker = ZerodhaBroker(without_totp=False)
+        broker = ZerodhaBroker(without_totp=False, paper_trade=paper_trade)
     else:
         logger.info("Using normal login flow")
-        broker = ZerodhaBroker(without_totp=True)
-    
+        broker = ZerodhaBroker(without_totp=True, paper_trade=paper_trade)
+
     # Create order tracking system for position management
     order_tracker = OrderTracker() 
     

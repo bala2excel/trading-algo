@@ -1,5 +1,6 @@
 import logging
 import os, sys
+from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from typing import Dict, Any, Optional, List
@@ -19,10 +20,17 @@ load_dotenv()
 
 # --- Zerodha Broker ---
 class ZerodhaBroker(BrokerBase):
-    def __init__(self, without_totp):
+    def __init__(self, without_totp, paper_trade=False):
         super().__init__()
         self.without_totp = without_totp
+        self.paper_trade = paper_trade
+
+        if self.paper_trade:
+            from brokers.paper_trade import PaperTradeLogger
+            self.paper_logger = PaperTradeLogger()
+
         self.kite, self.auth_response_data = self.authenticate()
+        
         # self.kite.set_access_token(self.auth_response_data["access_token"])
         self.kite_ws = KiteTicker(api_key=os.getenv('BROKER_API_KEY'), access_token=self.auth_response_data["access_token"])
         self.tick_counter = 0
@@ -115,6 +123,21 @@ class ZerodhaBroker(BrokerBase):
         return order_id['trigger_id']
     
     def place_order(self, symbol, quantity, price, transaction_type, order_type, variety, exchange, product, tag="Unknown"):
+        if self.paper_trade:
+            # Log paper trade instead of sending to exchange
+            self.paper_logger.log_trade(
+                symbol=symbol,
+                side=transaction_type,
+                quantity=quantity,
+                price=price,
+                order_type=order_type,
+                exchange=exchange,
+                product=product,
+                tag=tag
+            )
+            logger.info(f"Paper trade logged for {symbol} {transaction_type} {quantity} @ {price}")
+            return f"paper_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        # ...existing code...
         if order_type == "LIMIT":
             order_type = self.kite.ORDER_TYPE_LIMIT
         elif order_type == "MARKET":

@@ -29,7 +29,7 @@ default:
   # Option series identifier - must match current trading option series
   # Format: NIFTY + expiry date (e.g., NIFTY25807 for 25th Jan 2025, 07th strike series)
   # This identifies which specific option expiry series to trade
-  symbol_initials: "NIFTY25807"
+  symbol_initials: "NIFTY25AUG14"
   
   # ========================================================================
   # GAP PARAMETERS - TRADE TRIGGERING THRESHOLDS
