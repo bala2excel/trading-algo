@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import ParametersForm from "./ParametersForm";
 
 const WS_URL = "ws://127.0.0.1:9000/ws/orders";
 const API_URL = "http://127.0.0.1:9000";
@@ -56,46 +58,53 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h2>Control Panel</h2>
-      <div style={{ marginBottom: 20 }}>
-        <b>Status:</b> <span style={{ color: status === "running" ? "green" : "red" }}>{status}</span>
-        <button onClick={startAlgo} disabled={status === "running"} style={{ marginLeft: 10 }}>Start</button>
-        <button onClick={stopAlgo} disabled={status === "stopped"} style={{ marginLeft: 10 }}>Stop</button>
+    <div className="container py-4">
+      <div className="row mb-4">
+        <div className="col">
+          <h2 className="mb-3">Trading Algo Control Panel</h2>
+          <div className="d-flex align-items-center mb-3">
+            <b>Status:</b>
+            <span className={`ms-2 fw-bold text-${status === "running" ? "success" : "danger"}`}>{status}</span>
+            <button onClick={startAlgo} disabled={status === "running"} className="btn btn-success btn-sm ms-3">Start</button>
+            <button onClick={stopAlgo} disabled={status === "stopped"} className="btn btn-danger btn-sm ms-2">Stop</button>
+          </div>
+        </div>
       </div>
-      <h3>Parameters</h3>
-      {Object.keys(params).length === 0 ? (
-        <div style={{ color: 'red', marginBottom: 10 }}>No parameters found. Please check backend or config file.</div>
-      ) : (
-        <>
-          <table><tbody>
-            {Object.entries(params).map(([k, v]) => (
-              <tr key={k}>
-                <td>{k}</td>
-                <td><input name={k} defaultValue={v} onChange={handleChange} /></td>
+      <div className="row mb-4">
+        <div className="col-md-10">
+          <h4>Parameters</h4>
+          <ParametersForm
+            params={params}
+            form={form}
+            handleChange={handleChange}
+            updateParams={updateParams}
+          />
+        </div>
+      </div>
+      <div className="row">
+        <div className="col-md-10">
+          <h4>Live Orders</h4>
+          <table className="table table-striped table-bordered table-sm">
+            <thead className="table-light">
+              <tr>
+                <th>Order ID</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Time</th><th>Type</th>
               </tr>
-            ))}
-          </tbody></table>
-          <button onClick={updateParams} style={{ marginTop: 10 }}>Update Parameters</button>
-        </>
-      )}
-      <h3>Live Orders</h3>
-      <table border="1" cellPadding="5"><thead>
-        <tr>
-          <th>Order ID</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Time</th><th>Type</th>
-        </tr>
-      </thead><tbody>
-        {orders.map(o => (
-          <tr key={o.order_id}>
-            <td>{o.order_id}</td>
-            <td>{o.symbol}</td>
-            <td>{o.quantity}</td>
-            <td>{o.market_price}</td>
-            <td>{o.timestamp}</td>
-            <td>{o.paper_trade ? "Paper" : "Live"}</td>
-          </tr>
-        ))}
-      </tbody></table>
+            </thead>
+            <tbody>
+              {orders.map(o => (
+                <tr key={o.order_id}>
+                  <td>{o.order_id}</td>
+                  <td>{o.symbol}</td>
+                  <td>{o.quantity}</td>
+                  <td>{o.market_price}</td>
+                  <td>{o.timestamp}</td>
+                  <td><span className={`badge bg-${o.paper_trade ? "secondary" : "success"}`}>{o.paper_trade ? "Paper" : "Live"}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
